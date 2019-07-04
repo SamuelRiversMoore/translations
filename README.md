@@ -6,9 +6,9 @@ A translations section to switch beween page's languages in Kirby-3 panel.
 
 ## Installation
 
-Download and copy this repository to `/site/plugins/rtl-panel`
+Download and copy this repository to `/site/plugins/translations`
 
-Or install it with composer: `composer require samrm/rtl-panel`
+Or install it with composer: `composer require samrm/translations`
 
 <br/>
 
