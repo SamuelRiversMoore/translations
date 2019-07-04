@@ -18,13 +18,15 @@ panel.plugin("samrm/translations", {
 			},
 			methods: {
 				getTranslationsStatus() {
-					new Promise((resolve, reject) => {
-						this.load().then(response => {
+					this.load()
+						.then(response => {
 							this.headline = response.headline;
 							this.translations = response.translations;
 							this.isLoading = false;
+						})
+						.catch(error => {
+							console.log(error);
 						});
-					});
 				},
 				setLanguage(language) {
 					this.$store.dispatch("languages/current", language);
