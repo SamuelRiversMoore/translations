@@ -15,5 +15,5 @@
     "extra": {
         "installer-name": "translations"
     },
-    "minimum-stability": "beta"
+    "minimum-stability": "dev"
 }
