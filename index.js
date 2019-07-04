@@ -1,4 +1,4 @@
-panel.plugin("samuel/translations", {
+panel.plugin("samrm/translations", {
 	sections: {
 		translations: {
 			data() {

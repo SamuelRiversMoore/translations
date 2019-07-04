@@ -1,6 +1,6 @@
 <?php
 
-Kirby::plugin('samuel/translations', [
+Kirby::plugin('samrm/translations', [
     'routes' => [
         [
             'pattern' => '(:all)',
