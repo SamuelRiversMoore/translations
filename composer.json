@@ -1,0 +1,19 @@
+{
+    "name": "samrm/translations",
+    "description": "A translations section for kriby-3 panel",
+    "license": "MIT",
+    "type": "kirby-plugin",
+    "authors": [
+        {
+            "name": "Samuel Rivers-Moore",
+            "email": "samuel.riversmoore@gmail.com"
+        }
+    ],
+    "require": {
+        "getkirby/composer-installer": "^1.1"
+    },
+    "extra": {
+        "installer-name": "translations"
+    },
+    "minimum-stability": "beta"
+}
