@@ -12,7 +12,6 @@
 	-webkit-box-align: center;
 	-ms-flex-align: center;
 	align-items: center;
-	padding: 0.6rem 0.75rem;
 	width: 100%;
 }
 .translation-status:hover,
@@ -27,12 +26,18 @@
 .translation-status:not(:last-child) {
 	border-bottom: 1px solid #ccc;
 }
-.translation-status-icon {
-	margin-right: 0.75em;
+button.translation-state {
+	padding: 0.6rem 0.75rem;
 }
-.translation-status-icon .k-icon.translated {
+button.translation-state .k-icon.translated {
 	color: #97b349;
 }
-.translation-status-icon .k-icon.untranslated {
+button.translation-state .k-icon.untranslated {
 	color: #ccc;
+}
+button.translation-link {
+	padding: 0.6rem 0.75rem;
+	padding-left: 0;
+	width: 100%;
+	text-align: left;
 }

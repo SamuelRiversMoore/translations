@@ -83,6 +83,31 @@ Kirby::plugin('samrm/translations', [
                 }
             ]
         ]
-    ]
-
+    ],
+    'api' => [
+        'routes' => [
+            [
+                'pattern' => 'set-translation-status',
+                'method'  => 'POST',
+                'auth' => true,
+                'action'  => function () {
+                    $request = $this->requestBody();
+                    try {
+                        $page = $this->page($request['pageId']);
+                        $page->update([
+                            'translated' => $request['status'] ? 'true' : 'false'
+                        ], $request['lang']);
+                        return [
+                            'status' => 'success',
+                            'val' => $request['status'] ? 'true' : 'false'
+                        ];
+                    } catch (Exception $e) {
+                        return [
+                            'status' => 'error'
+                        ];
+                    }
+                }
+            ]
+        ]
+    ],
 ]);

@@ -14,6 +14,12 @@ panel.plugin("samrm/translations", {
 				},
 				languages() {
 					return this.$store.state.languages.all;
+				},
+				current() {
+					return this.$store.state.form.current;
+				},
+				pageId() {
+					return this.current.substring(5, this.current.length - 3);
 				}
 			},
 			methods: {
@@ -31,6 +37,16 @@ panel.plugin("samrm/translations", {
 				setLanguage(language) {
 					this.$store.dispatch("languages/current", language);
 					this.$emit("change", language);
+				},
+				setTranslationStatus(lang, newStatus) {
+					this.$api
+						.post("set-translation-status", { lang: lang, status: newStatus, pageId: this.pageId })
+						.then(response => {
+							this.$set(this.translations, lang, newStatus);
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
 				}
 			},
 			created() {
@@ -47,17 +63,17 @@ panel.plugin("samrm/translations", {
 	        		</header>
 	        		<div class="translations-status">
 	        			<template v-for="language in languages">
-						    <button class="translation-status" @click="setLanguage(language)" :class="{active: language.code == currentLanguage.code}">
-						    	<span v-if="translations" class="translation-status-icon">
+						    <div class="translation-status" :class="{active: language.code == currentLanguage.code}">
+					    		<button v-if="translations" class="translation-state" @click="setTranslationStatus(language.code, !translations[language.code])" >
 						    		<template v-if="translations[language.code]">
 						    			<k-icon class="translated" type="check" />
 						    		</template>
 						    		<template v-else>
 						    			<k-icon class="untranslated" type="cancel" />
 						    		</template>
-						    	</span>
-						    	<span>{{ language.name }}</span>
-						    </button>
+						    	</button>
+						    	<button class="translation-link" @click="setLanguage(language)">{{ language.name }}</button>
+						    </div>
 	        			</template>
 	        		</div>
 				</section>
