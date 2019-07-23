@@ -93,17 +93,18 @@ Kirby::plugin('samrm/translations', [
                 'action'  => function () {
                     $request = $this->requestBody();
                     try {
-                        $page = $this->page($request['pageId']);
+                        $page = $this->kirby()->page($request['pageId']);
                         $page->update([
-                            'translated' => $request['status'] ? 'true' : 'false'
+                            'translated' => $request['status']
                         ], $request['lang']);
                         return [
                             'status' => 'success',
-                            'val' => $request['status'] ? 'true' : 'false'
+                            'value' => $request['status']
                         ];
                     } catch (Exception $e) {
                         return [
-                            'status' => 'error'
+                            'status' => 'error',
+                            'message' => $e->getMessage()
                         ];
                     }
                 }

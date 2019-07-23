@@ -19,7 +19,7 @@ panel.plugin("samrm/translations", {
 					return this.$store.state.form.current;
 				},
 				pageId() {
-					return this.current.substring(5, this.current.length - 3);
+					return this.current.substring(6, this.current.length - 3);
 				}
 			},
 			methods: {
@@ -42,7 +42,7 @@ panel.plugin("samrm/translations", {
 					this.$api
 						.post("set-translation-status", { lang: lang, status: newStatus, pageId: this.pageId })
 						.then(response => {
-							this.$set(this.translations, lang, newStatus);
+							this.$set(this.translations, lang, response.value);
 						})
 						.catch(function(error) {
 							console.log(error);
