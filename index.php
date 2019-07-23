@@ -98,7 +98,7 @@ Kirby::plugin('samrm/translations', [
                     try {
                         $page = $this->kirby()->page($request['pageId']);
                         $page->update([
-                            'translated' => $request['status']
+                            'translated' => $request['status']  ? 'true' : 'false'
                         ], $request['lang']);
                         return [
                             'status' => 'success',
