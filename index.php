@@ -1,13 +1,16 @@
 <?php
 
 Kirby::plugin('samrm/translations', [
+    'options' => [
+        'routing' => false
+    ],
     'routes' => [
         [
             'pattern' => '(:all)',
             'language' => '*',
             'action' => function ($language, $slug) {
                 $page = site()->visit($slug, $language->code());
-                if ($page->isUntranslated() && !kirby()->user()) {
+                if (option('samrm.translations.routing') && $page->isUntranslated() && !kirby()->user()) {
                     return false;
                 }
                 return $this->next();
@@ -16,7 +19,7 @@ Kirby::plugin('samrm/translations', [
     ],
     'hooks' => [
         'page.update:before' => function ($page) {
-            // set a default value of the "translated" field for every tranlation of article or country pages
+            // sets a default value of the "translated" field for every tranlation of article or country pages
             try {
                 if (in_array($page->intendedTemplate(), array('country', 'article'))) {
                     foreach ($this->languages() as $language) {
@@ -58,7 +61,7 @@ Kirby::plugin('samrm/translations', [
             return $this->isVisible() && $this->isTranslated();
         },
         'isUnavailable' => function () {
-            return $this->isInvisible() && $this->isUntranslated();
+            return $this->isInvisible() || $this->isUntranslated();
         }
     ],
     'sections' => [
