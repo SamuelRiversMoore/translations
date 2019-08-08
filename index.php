@@ -17,26 +17,6 @@ Kirby::plugin('samrm/translations', [
             }
         ],
     ],
-    'hooks' => [
-        'page.update:before' => function ($page) {
-            // sets a default value of the "translated" field for every tranlation of article or country pages
-            try {
-                if (in_array($page->intendedTemplate(), array('country', 'article'))) {
-                    foreach ($this->languages() as $language) {
-                        if ($this->language()->code() != $language->code()) {
-                            if (!$page->content($language->code())->translated() || $page->content($language->code())->translated()->isEmpty()) {
-                                $page->update([
-                                    'translated' => 'false' // default value
-                                ], $language->code());
-                            }
-                        }
-                    }
-                }
-            } catch (Exception $e) {
-                echo $e->getMessage();
-            }
-        }
-    ],
     'pagesMethods' => [
         'translated' => function () {
             return $this->filter(function ($page) {
@@ -50,18 +30,26 @@ Kirby::plugin('samrm/translations', [
         },
     ],
     'pageMethods' => [
-        'isTranslated' => function () {
-            $language = kirby()->language()->code();
-            return $this->content($language)->translated()->isEmpty() || $this->content($language)->translated()->isTrue();
+        'hasTranslatedField' => function ($languageCode = null) {
+            $languageCode = $languageCode ?? kirby()->language()->code();
+            return $this->translation($languageCode)->exists() && array_key_exists('translated', $this->readContent($languageCode));
         },
-        'isUntranslated' => function () {
-            return !$this->isTranslated();
+        'isTranslated' => function ($languageCode = null) {
+            $languageCode = $languageCode ?? kirby()->language()->code();
+            if ($this->hasTranslatedField($languageCode)) {
+                return $this->content($languageCode)->translated()->isNotEmpty() && $this->content($languageCode)->translated()->isTrue();
+            } else {
+                return false;
+            }
         },
-        'isAvailable' => function () {
-            return $this->isVisible() && $this->isTranslated();
+        'isUntranslated' => function ($languageCode = null) {
+            return !$this->isTranslated($languageCode);
         },
-        'isUnavailable' => function () {
-            return $this->isInvisible() || $this->isUntranslated();
+        'isAvailable' => function ($languageCode = null) {
+            return $this->isVisible() && $this->isTranslated($languageCode);
+        },
+        'isUnavailable' => function ($languageCode = null) {
+            return $this->isInvisible() || $this->isUntranslated($languageCode);
         }
     ],
     'sections' => [
@@ -70,17 +58,13 @@ Kirby::plugin('samrm/translations', [
                 'headline' => function ($headline) {
                     return $headline;
                 },
-                'field' => function ($field = 'translated') {
-                    return $field;
-                },
             ],
             'computed' => [
                 'translations' => function () {
                     $translations = array();
                     foreach ($this->model()->kirby()->languages() as $language) {
-                        $field = $this->field;
-                        $status = $this->model()->content($language->code())->$field();
-                        $translations[$language->code()] = $status->toBool();
+                        $status = $this->model()->isTranslated($language->code());
+                        $translations[$language->code()] = $status;
                     }
                     return $translations;
                 }
@@ -99,7 +83,7 @@ Kirby::plugin('samrm/translations', [
                         $page = $this->kirby()->page($request['pageId']);
                         $page->update([
                             'translated' => $request['status']  ? 'true' : 'false'
-                        ], $request['lang']);
+                        ], $request['languageCode']);
                         return [
                             'status' => 'success',
                             'value' => $request['status']

@@ -18,6 +18,9 @@ panel.plugin("samrm/translations", {
 				current() {
 					return this.$store.state.form.current;
 				},
+				model() {
+					return this.$store.getters["form/model"](this.current);
+				},
 				pageId() {
 					return this.current.substring(6, this.current.length - 3);
 				}
@@ -38,15 +41,24 @@ panel.plugin("samrm/translations", {
 					this.$store.dispatch("languages/current", language);
 					this.$emit("change", language);
 				},
-				setTranslationStatus(lang, newStatus) {
+				setTranslationStatus(languageCode, newStatus) {
 					this.$api
-						.post("set-translation-status", { lang: lang, status: newStatus, pageId: this.pageId })
+						.post("set-translation-status", { languageCode, status: newStatus, pageId: this.pageId })
 						.then(response => {
-							this.$set(this.translations, lang, response.value);
+							this.$set(this.translations, languageCode, response.value);
+							if (languageCode === this.currentLanguage.code) {
+								this.updateModelField("translated", response.value.toString());
+							}
 						})
 						.catch(function(error) {
 							console.log(error);
 						});
+				},
+				updateModelField(key, value) {
+					let content = JSON.parse(JSON.stringify(this.model.values));
+					content[key] = value;
+					this.$store.commit("form/SET_ORIGINALS", [this.current, content]);
+					this.$store.commit("form/SET_VALUES", [this.current, content]);
 				}
 			},
 			created() {
@@ -63,7 +75,7 @@ panel.plugin("samrm/translations", {
 	        		</header>
 	        		<div class="translations-status">
 	        			<template v-for="language in languages">
-						    <div class="translation-status" :class="{active: language.code == currentLanguage.code}">
+						    <div class="translation-status" :class="{active: language.code === currentLanguage.code}">
 					    		<button v-if="translations" class="translation-state" @click="setTranslationStatus(language.code, !translations[language.code])" >
 						    		<template v-if="translations[language.code]">
 						    			<k-icon class="translated" type="check" />
