@@ -30,6 +30,14 @@ Kirby::plugin('samrm/translations', [
         },
     ],
     'pageMethods' => [
+        'getTranslationsStates' => function () {
+            $translations = array();
+            foreach (kirby()->languages() as $language) {
+                $status = $this->isTranslated($language->code());
+                $translations[$language->code()] = $status;
+            }
+            return $translations;
+        },
         'hasTranslatedField' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
             return $this->translation($languageCode)->exists() && array_key_exists('translated', $this->readContent($languageCode));
@@ -50,7 +58,7 @@ Kirby::plugin('samrm/translations', [
         },
         'isUnavailable' => function ($languageCode = null) {
             return $this->isInvisible() || $this->isUntranslated($languageCode);
-        }
+        },
     ],
     'sections' => [
         'translations' => [
@@ -61,12 +69,7 @@ Kirby::plugin('samrm/translations', [
             ],
             'computed' => [
                 'translations' => function () {
-                    $translations = array();
-                    foreach ($this->model()->kirby()->languages() as $language) {
-                        $status = $this->model()->isTranslated($language->code());
-                        $translations[$language->code()] = $status;
-                    }
-                    return $translations;
+                    return $this->model()->getTranslationsStates();
                 }
             ]
         ]
