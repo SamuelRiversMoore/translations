@@ -28,6 +28,12 @@ Kirby::plugin('samrm/translations', [
                 return $page->isAvailable();
             });
         },
+        'hasTranslated' => function () {
+            return $this->translated()->count() > 0;
+        },
+        'hasAvailable' => function () {
+            return $this->available()->count() > 0;
+        },
     ],
     'pageMethods' => [
         'getTranslationsStates' => function () {
