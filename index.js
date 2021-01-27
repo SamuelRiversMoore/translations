@@ -46,9 +46,6 @@ panel.plugin('samrm/translations', {
 						.post('set-translation-status', { languageCode, status: newStatus, pageId: this.pageId })
 						.then((response) => {
 							this.$set(this.translations, languageCode, response.value)
-							if (languageCode === this.currentLanguage.code) {
-								this.updateModelField('translated', response.value.toString())
-							}
 						})
 						.catch(function(error) {
 							console.log(error)
