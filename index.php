@@ -27,7 +27,7 @@ Kirby::plugin('samrm/translations', [
                     'depth' => $child->depth() - 1,
                     'image' => $child->panel()->image(),
                     'panelUrl' => $child->panel()->url(true),
-                    'breadcrumbs' => $child->getBreadcrumbs(),
+                    'breadcrumbs' => $child->getBreadcrumbsAsString(),
                     'translations' => $child->getTranslationsStates()
                 );
             }
@@ -87,7 +87,7 @@ Kirby::plugin('samrm/translations', [
         'isUnavailable' => function ($languageCode = null) {
             return $this->isInvisible() || $this->isUntranslated($languageCode);
         },
-        'getBreadcrumbs' => function () {
+        'getBreadcrumbsAsString' => function () {
             $crumbs = $this->parents()->flip()->pluck('title');
             return implode("&ensp;>&ensp;", $crumbs);
         }
