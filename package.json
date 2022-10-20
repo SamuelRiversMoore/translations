@@ -4,5 +4,5 @@
     "serve": "npx -y kirbyup serve src/index.js",
     "build": "npx -y kirbyup src/index.js"
   },
-  "version": "2.0.0"
+  "version": "2.1.0"
 }
