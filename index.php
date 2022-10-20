@@ -11,11 +11,28 @@ Kirby::plugin('samrm/translations', [
             'action' => function ($language, $slug) {
                 $page = site()->visit($slug, $language->code());
                 if (option('samrm.translations.routing') && $page->isUntranslated() && !kirby()->user()) {
-                    return false;
+                    return page('error')->render(['message' => 'This page has not been translated yet.']);
                 }
                 return $this->next();
             }
         ],
+    ],
+    'siteMethods' => [
+        'getTranslationsIndex' => function ($page = null) {
+            $root = $page ?? $this;
+            $translations = array();
+            foreach ($root->index() as $child) {
+                $translations[] = array(
+                    'title' => $child->title()->value(),
+                    'depth' => $child->depth() - 1,
+                    'image' => $child->panel()->image(),
+                    'panelUrl' => $child->panel()->url(true),
+                    'breadcrumbs' => $child->getBreadcrumbs(),
+                    'translations' => $child->getTranslationsStates()
+                );
+            }
+            return $translations;
+        },
     ],
     'pagesMethods' => [
         'translated' => function () {
@@ -28,21 +45,17 @@ Kirby::plugin('samrm/translations', [
                 return $page->isAvailable();
             });
         },
-        'hasTranslated' => function () {
-            return $this->translated()->count() > 0;
-        },
-        'hasAvailable' => function () {
-            return $this->available()->count() > 0;
-        },
     ],
     'pageMethods' => [
         'getTranslationsStates' => function () {
             $translations = array();
             foreach (kirby()->languages() as $language) {
-                $status = $this->isTranslated($language->code());
-                $translations[$language->code()] = $status;
+                $translations[$language->code()] = $this->getTranslatedStatus($language->code());
             }
             return $translations;
+        },
+        'getTranslationsIndex' => function () {
+            return site()->getTranslationsIndex($this);  
         },
         'hasTranslatedField' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
@@ -50,21 +63,34 @@ Kirby::plugin('samrm/translations', [
         },
         'isTranslated' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
-            if ($this->hasTranslatedField($languageCode)) {
-                return $this->content($languageCode)->translated()->isNotEmpty() && $this->content($languageCode)->translated()->isTrue();
-            } else {
-                return false;
-            }
+            return $this->getTranslatedStatus($languageCode) == 'true';
+        },
+        'isPending' => function ($languageCode = null) {
+            $languageCode = $languageCode ?? kirby()->language()->code();
+            return $this->getTranslatedStatus($languageCode) == 'pending';
         },
         'isUntranslated' => function ($languageCode = null) {
-            return !$this->isTranslated($languageCode);
+            $languageCode = $languageCode ?? kirby()->language()->code();
+            return $this->getTranslatedStatus($languageCode) == 'false';
+        },
+        'getTranslatedStatus' => function ($languageCode = null) {
+            $languageCode = $languageCode ?? kirby()->language()->code();
+            if ($this->hasTranslatedField($languageCode) && $this->content($languageCode)->translated()->isNotEmpty()) {
+                return $this->content($languageCode)->translated()->value();
+            } else {
+                return 'false';
+            }
         },
         'isAvailable' => function ($languageCode = null) {
-            return $this->isVisible() && $this->isTranslated($languageCode);
+            return $this->isListed() && ($this->isTranslated($languageCode) || $this->isPending($languageCode));
         },
         'isUnavailable' => function ($languageCode = null) {
             return $this->isInvisible() || $this->isUntranslated($languageCode);
         },
+        'getBreadcrumbs' => function () {
+            $crumbs = $this->parents()->flip()->pluck('title');
+            return implode("&ensp;>&ensp;", $crumbs);
+        }
     ],
     'sections' => [
         'translations' => [
@@ -76,6 +102,18 @@ Kirby::plugin('samrm/translations', [
             'computed' => [
                 'translations' => function () {
                     return $this->model()->getTranslationsStates();
+                }
+            ]
+        ],
+        'translationsindex' => [
+            'props' => [
+                'headline' => function ($headline) {
+                    return $headline;
+                },
+            ],
+            'computed' => [
+                'index' => function () {
+                    return $this->model()->getTranslationsIndex();
                 }
             ]
         ]
@@ -91,7 +129,7 @@ Kirby::plugin('samrm/translations', [
                     try {
                         $page = $this->kirby()->page($request['pageId']);
                         $page->update([
-                            'translated' => $request['status']  ? 'true' : 'false'
+                            'translated' => $request['status']  ?  $request['status'] : 'false'
                         ], $request['languageCode']);
                         return [
                             'status' => 'success',

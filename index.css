@@ -1,45 +1,108 @@
 .k-section-name-translations {
-	padding-bottom: 2.25rem;
+  padding-bottom: 2.25rem;
 }
 .translations-status {
-	line-height: 1.25rem;
-	border: 1px solid #ccc;
-	background: #fff;
+  line-height: 1.25rem;
+  border: 1px solid #ccc;
+  background: #fff;
 }
 
 .translation-status {
-	display: flex;
-	-webkit-box-align: center;
-	-ms-flex-align: center;
-	align-items: stretch;
-	width: 100%;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: stretch;
+  width: 100%;
 }
 .translation-state:hover,
 .translation-state:focus,
 .translation-link:hover,
 .translation-link:focus {
-	background: #fafafa;
+  background: #fafafa;
 }
 .translation-status:active,
 .translation-status.active {
-	background: #f6f6f6;
+  background: #f6f6f6;
 }
 
 .translation-status:not(:last-child) {
-	border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 button.translation-state {
-	padding: 0.7rem 0.75rem;
-	border-right: solid 1px #ccc;
-}
-button.translation-state .k-icon.translated {
-	color: #97b349;
-}
-button.translation-state .k-icon.untranslated {
-	color: #ccc;
+  padding: 0.7rem 0.75rem;
+  border-right: solid 1px #ccc;
 }
 button.translation-link {
-	padding: 0.6rem 0.75rem;
-	width: 100%;
-	text-align: left;
+  padding: 0.6rem 0.75rem;
+  width: 100%;
+  text-align: left;
+}
+
+.k-icon.translated-true {
+  color: #65b900;
+}
+.k-icon.translated-pending {
+  color: #d08902;
+}
+.k-icon.translated-false {
+  color: #ddd;
+}
+
+.translation-breadcrumbs {
+  opacity: 0.5;
+}
+.translations-index .span-block {
+  width: 30px;
+  display: inline-block;
+}
+.translation-index-state {
+  padding: 0.7rem 1rem;
+  text-transform: uppercase;
+  text-align: center;
+  min-width: 70px;
+  display: inline-block;
+}
+
+.k-translations-index-header {
+  font-size: 14px;
+  position: sticky;
+  top: 0px;
+  z-index: 1;
+  text-transform: uppercase;
+  color: #888;
+  border-bottom: 2px solid #d9d9d9;
+  box-shadow: none;
+  margin-bottom: 0 !important;
+  border-radius: 0;
+}
+.k-translations-index-header > span {
+  min-height: 38px;
+}
+
+.k-translations-index-header .k-item-figure {
+  border-right: solid 1px #e6e6e6;
+}
+
+.k-translations-index-loading-container {
+  text-align: center;
+  font-size: 14px;
+  padding: 30px 0;
+  color: #666;
+}
+.k-translations-index-spinner > .icon {
+  animation-name: spin;
+  animation-duration: 1000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.k-translations-index-loading {
+  margin-top: 10px;
 }
