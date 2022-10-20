@@ -43,7 +43,7 @@ export default {
     pageId() {
       return this.current
         .substring(7, this.current.length)
-        .replace('+', '/')
+        .replaceAll('+', '/')
         .replace(/(\?.*)/, '')
     }
   },
