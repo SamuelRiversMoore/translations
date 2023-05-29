@@ -106,3 +106,6 @@ button.translation-link {
 .k-translations-index-loading {
   margin-top: 10px;
 }
+.k-translations-buttons {
+  flex-shrink: 0;
+}
