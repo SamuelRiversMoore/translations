@@ -65,7 +65,7 @@ Kirby::plugin('samrm/translations', [
         },
         'hasTranslatedField' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
-            return $this->translation($languageCode)->exists() && array_key_exists('translated', $this->readContent($languageCode));
+            return $this->translation($languageCode)->exists() && array_key_exists('translated', $this->content($languageCode)->toArray());
         },
         'isTranslated' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
