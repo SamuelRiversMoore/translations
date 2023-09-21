@@ -11,7 +11,7 @@
             <span class="k-item-content"
               ><span class="k-item-title">{{ $t('pages') }}</span></span
             >
-            <span class="k-item-options">
+            <span class="k-item-options flex">
               <template v-for="language in languages">
                 <span class="translation-index-state">
                   {{ language.code }}
@@ -26,11 +26,11 @@
                   <span v-if="item.breadcrumbs" class="translation-breadcrumbs" v-html="item.breadcrumbs + '&ensp;>&ensp;'"></span><span>{{ item.title }}</span>
                 </k-link>
               </span>
-              <span class="k-item-options">
+              <span class="k-item-options flex">
                 <template v-for="language in languages">
-                  <button v-if="item.translations" class="translation-index-state">
+                  <span v-if="item.translations" class="translation-index-state">
                     <k-icon :class="'translated-' + item.translations[language.code]" :type="icons[item.translations[language.code]]" />
-                  </button>
+                  </span>
                 </template>
               </span>
             </k-item>
