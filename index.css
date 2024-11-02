@@ -3,8 +3,9 @@
 }
 .translations-status {
   line-height: 1.25rem;
-  border: 1px solid #ccc;
   background: #fff;
+  box-shadow: var(--shadow);
+  border-radius: var(--rounded);
 }
 
 .translation-status {
@@ -15,25 +16,31 @@
   width: 100%;
 }
 .translation-state:hover,
-.translation-state:focus,
-.translation-link:hover,
-.translation-link:focus {
-  background: #fafafa;
+.translation-link:hover {
+  background: #fdfdfd;
+  text-decoration: underline;
 }
 .translation-status:active,
 .translation-status.active {
-  background: #f6f6f6;
+  text-decoration: underline;
 }
 
 .translation-status:not(:last-child) {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--table-color-border);
 }
 button.translation-state {
-  padding: 0.7rem 0.75rem;
+  height: var(--table-row-height);
+  width: var(--table-row-height);
   border-right: solid 1px #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-inline-end: 1px solid var(--table-color-border);
 }
 button.translation-link {
-  padding: 0.6rem 0.75rem;
+  height: var(--table-row-height);
+  padding-inline: var(--table-cell-padding);
   width: 100%;
   text-align: left;
 }
@@ -56,7 +63,7 @@ button.translation-link {
   display: inline-block;
 }
 .translation-index-state {
-  padding: 0.7rem 1rem;
+  padding: 0 1rem;
   text-transform: uppercase;
   text-align: center;
   min-width: 50px;
@@ -64,19 +71,31 @@ button.translation-link {
 }
 
 .k-translations-index-header {
-  font-size: 14px;
   position: sticky;
-  top: 0px;
+  top: var(--header-sticky-offset);
   z-index: 1;
+  width: 100%;
+  display: flex;
   text-transform: uppercase;
-  color: #888;
-  border-bottom: 2px solid #d9d9d9;
-  box-shadow: none;
-  margin-bottom: 0 !important;
-  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--table-color-th-text);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 2px;
 }
-.k-translations-index-header > span {
-  min-height: 38px;
+.k-translations-index-header .k-translations-index-header-item {
+  height: var(--table-row-height);
+  padding-inline: var(--table-cell-padding);
+  display: flex;
+  align-items: center;
+}
+.k-translations-index-header .k-translations-index-header-title {
+  flex-grow: 1;
+}
+.k-translations-index-header
+  .k-translations-index-header-item.translation-index-state {
+  justify-content: center;
 }
 
 .k-translations-index-header .k-item-figure {
@@ -88,6 +107,11 @@ button.translation-link {
   font-size: 14px;
   padding: 30px 0;
   color: #666;
+}
+.k-translations-index-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .k-translations-index-spinner > .icon {
   animation-name: spin;

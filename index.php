@@ -1,5 +1,7 @@
 <?php
 
+use Kirby\Cms\App as Kirby;
+
 Kirby::plugin('samrm/translations', [
     'options' => [
         'routing' => false
@@ -61,7 +63,7 @@ Kirby::plugin('samrm/translations', [
             return $translations;
         },
         'getTranslationsIndex' => function () {
-            return site()->getTranslationsIndex($this);  
+            return site()->getTranslationsIndex($this);
         },
         'hasTranslatedField' => function ($languageCode = null) {
             $languageCode = $languageCode ?? kirby()->language()->code();
