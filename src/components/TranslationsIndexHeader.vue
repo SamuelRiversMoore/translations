@@ -18,7 +18,7 @@
 export default {
   computed: {
     languages() {
-      return this.$languages;
+      return this.$panel.languages;
     },
   },
 };

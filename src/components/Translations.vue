@@ -29,22 +29,13 @@ export default {
   },
   computed: {
     currentLanguage() {
-      return this.$language
+      return this.$panel.language
     },
     languages() {
-      return this.$languages
-    },
-    current() {
-      return this.$store.state.content.current
-    },
-    model() {
-      return this.$store.getters['content/model'](this.current)
+      return this.$panel.languages
     },
     pageId() {
-      return this.current
-        .substring(7, this.current.length)
-        .replaceAll('+', '/')
-        .replace(/(\?.*)/, '')
+      return this.endpoints.model.replace(/^pages\//, '')
     }
   },
   methods: {
@@ -73,26 +64,19 @@ export default {
       this.$api
         .post('set-translation-status', { languageCode, status: newStatus, pageId: this.pageId })
         .then((response) => {
-          this.$set(this.translations, languageCode, response.value)
-          if (languageCode === this.currentLanguage.code) {
-            this.updateModelField('translated', response.value.toString())
-          }
+          this.translations[languageCode] = response.value
         })
         .catch(function(error) {
           console.log(error)
         })
     },
-    updateModelField(key, value) {
-      let content = JSON.parse(JSON.stringify(this.model.originals))
-      content[key] = value
-    }
   },
   created() {
     this.getTranslationsStatus()
-    this.$events.$on('model.update', this.getTranslationsStatus)
+    this.$events.on('model.update', this.getTranslationsStatus)
   },
-  destroyed() {
-    this.$events.$off('model.update', this.getTranslationsStatus)
+  unmounted() {
+    this.$events.off('model.update', this.getTranslationsStatus)
   }
 }
 </script>

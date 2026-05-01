@@ -25,8 +25,10 @@
 </template>
 
 <script>
+import { watch } from "vue";
 import TranslationsIndexHeader from "./TranslationsIndexHeader.vue";
 import TranslationsIndexItem from "./TranslationsIndexItem.vue";
+
 export default {
   components: {
     TranslationsIndexHeader,
@@ -51,13 +53,23 @@ export default {
   },
   created() {
     this.update();
-    this.$store.subscribeAction((action, state) => {
-      if (action.type == "languages/current") {
-        this.$nextTick(() => {
-          this.update();
-        });
+  },
+  mounted() {
+    this._stopWatchLanguage = watch(
+      () => this.$panel.language.code,
+      (newCode, oldCode) => {
+        if (newCode !== oldCode) {
+          this.$nextTick(() => {
+            this.update();
+          });
+        }
       }
-    });
+    );
+  },
+  unmounted() {
+    if (this._stopWatchLanguage) {
+      this._stopWatchLanguage();
+    }
   },
 };
 </script>
