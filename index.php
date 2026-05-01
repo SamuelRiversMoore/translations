@@ -110,6 +110,9 @@ Kirby::plugin('samrm/translations', [
             'computed' => [
                 'translations' => function () {
                     return $this->model()->getTranslationsStates();
+                },
+                'pageId' => function () {
+                    return $this->model()->id();
                 }
             ]
         ],

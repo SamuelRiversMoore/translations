@@ -22,6 +22,7 @@ export default {
     return {
       isLoading: true,
       headline: 'Translations',
+      pageId: null,
       translations: null,
       states: ['false', 'pending', 'true'],
       icons: { true: 'check', pending: 'clock', false: 'cancel' }
@@ -33,9 +34,6 @@ export default {
     },
     languages() {
       return this.$panel.languages
-    },
-    pageId() {
-      return this.parent.replace(/^pages\//, '').replaceAll('+', '/')
     }
   },
   methods: {
@@ -43,6 +41,7 @@ export default {
       this.load()
         .then((response) => {
           this.headline = response.headline
+          this.pageId = response.pageId
           this.translations = response.translations
           this.isLoading = false
         })
