@@ -35,7 +35,7 @@ export default {
       return this.$panel.languages
     },
     pageId() {
-      return this.endpoints.model.replace(/^pages\//, '')
+      return this.parent.replace(/^pages\//, '').replaceAll('+', '/')
     }
   },
   methods: {
