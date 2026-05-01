@@ -1,0 +1,527 @@
+<?php
+
+namespace Kirby\Cms;
+
+use Closure;
+use Kirby\Data\Data;
+use Kirby\Data\Json;
+use Kirby\Exception\LogicException;
+use Kirby\Exception\PermissionException;
+use Kirby\Filesystem\Dir;
+use Kirby\Filesystem\F;
+use Kirby\Form\Form;
+use Kirby\Http\Idn;
+use Kirby\Toolkit\A;
+use Kirby\Toolkit\Str;
+use SensitiveParameter;
+use Throwable;
+
+/**
+ * UserActions
+ *
+ * @package   Kirby Cms
+ * @author    Bastian Allgeier <bastian@getkirby.com>
+ * @link      https://getkirby.com
+ * @copyright Bastian Allgeier
+ * @license   https://getkirby.com/license
+ */
+trait UserActions
+{
+	/**
+	 * Changes the user email address
+	 */
+	public function changeEmail(string $email): static
+	{
+		$email = trim($email);
+
+		return $this->commit('changeEmail', ['user' => $this, 'email' => Idn::decodeEmail($email)], function ($user, $email) {
+			$user = $user->clone([
+				'email' => $email
+			]);
+
+			$user->updateCredentials([
+				'email' => $email
+			]);
+
+			// update the users collection
+			$user->kirby()->users()->set($user->id(), $user);
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Changes the user language
+	 */
+	public function changeLanguage(string $language): static
+	{
+		return $this->commit('changeLanguage', ['user' => $this, 'language' => $language], function ($user, $language) {
+			$user = $user->clone([
+				'language' => $language,
+			]);
+
+			$user->updateCredentials([
+				'language' => $language
+			]);
+
+			// update the users collection
+			$user->kirby()->users()->set($user->id(), $user);
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Changes the screen name of the user
+	 */
+	public function changeName(string $name): static
+	{
+		$name = trim($name);
+
+		return $this->commit('changeName', ['user' => $this, 'name' => $name], function ($user, $name) {
+			$user = $user->clone([
+				'name' => $name
+			]);
+
+			$user->updateCredentials([
+				'name' => $name
+			]);
+
+			// update the users collection
+			$user->kirby()->users()->set($user->id(), $user);
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Changes the user password
+	 *
+	 * If this method is used with user input, it is recommended to also
+	 * confirm the current password by the user via `::validatePassword()`
+	 */
+	public function changePassword(
+		#[SensitiveParameter]
+		string $password
+	): static {
+		return $this->commit('changePassword', ['user' => $this, 'password' => $password], function ($user, $password) {
+			$user = $user->clone([
+				'password' => $password = User::hashPassword($password)
+			]);
+
+			$user->writePassword($password);
+
+			// update the users collection
+			$user->kirby()->users()->set($user->id(), $user);
+
+			// keep the user logged in to the current browser
+			// if they changed their own password
+			// (regenerate the session token, update the login timestamp)
+			if ($user->isLoggedIn() === true) {
+				$user->loginPasswordless();
+			}
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Changes the user role
+	 */
+	public function changeRole(string $role): static
+	{
+		return $this->commit('changeRole', ['user' => $this, 'role' => $role], function ($user, $role) {
+			$user = $user->clone([
+				'role' => $role,
+			]);
+
+			$user->updateCredentials([
+				'role' => $role
+			]);
+
+			// update the users collection
+			$user->kirby()->users()->set($user->id(), $user);
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Changes the user's TOTP secret
+	 * @since 4.0.0
+	 */
+	public function changeTotp(
+		#[SensitiveParameter]
+		string|null $secret
+	): static {
+		return $this->commit('changeTotp', ['user' => $this, 'secret' => $secret], function ($user, $secret) {
+			$this->writeSecret('totp', $secret);
+
+			// keep the user logged in to the current browser
+			// if they changed their own TOTP secret
+			// (regenerate the session token, update the login timestamp)
+			if ($user->isLoggedIn() === true) {
+				$user->loginPasswordless();
+			}
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Commits a user action, by following these steps
+	 *
+	 * 1. checks the action rules
+	 * 2. sends the before hook
+	 * 3. commits the action
+	 * 4. sends the after hook
+	 * 5. returns the result
+	 *
+	 * @throws \Kirby\Exception\PermissionException
+	 */
+	protected function commit(
+		string $action,
+		array $arguments,
+		Closure $callback
+	): mixed {
+		if ($this->isKirby() === true) {
+			throw new PermissionException('The Kirby user cannot be changed');
+		}
+
+		$old            = $this->hardcopy();
+		$kirby          = $this->kirby();
+		$argumentValues = array_values($arguments);
+
+		$this->rules()->$action(...$argumentValues);
+		$kirby->trigger('user.' . $action . ':before', $arguments);
+
+		$result = $callback(...$argumentValues);
+
+		$argumentsAfter = match ($action) {
+			'create',
+			'createAvatar',
+			'replaceAvatar' => ['user' => $result],
+			'delete',
+			'deleteAvatar'  => ['status' => $result, 'user' => $old],
+			default         => ['newUser' => $result, 'oldUser' => $old]
+		};
+
+		$kirby->trigger('user.' . $action . ':after', $argumentsAfter);
+
+		$kirby->cache('pages')->flush();
+		return $result;
+	}
+
+	/**
+	 * Creates a new User from the given props and returns a new User object
+	 */
+	public static function create(array|null $props = null): User
+	{
+		// Prevent injecting blueprint as this always must be derived from
+		// the template/model name and blueprint object in the app,
+		// never directly be supplied by the caller
+		unset($props['blueprint']);
+
+		$data = $props;
+
+		if (isset($props['email']) === true) {
+			$data['email'] = Idn::decodeEmail($props['email']);
+		}
+
+		if (isset($props['password']) === true) {
+			$data['password'] = User::hashPassword($props['password']);
+		}
+
+		$props['role'] = $props['model'] = strtolower($props['role'] ?? 'default');
+
+		$user = User::factory($data);
+
+		// create a form for the user
+		$form = Form::for($user, [
+			'values' => $props['content'] ?? []
+		]);
+
+		// inject the content
+		$user = $user->clone(['content' => $form->strings(true)]);
+
+		// run the hook
+		return $user->commit('create', ['user' => $user, 'input' => $props], function ($user, $props) {
+			$user->writeCredentials([
+				'email'    => $user->email(),
+				'language' => $user->language(),
+				'name'     => $user->name()->value(),
+				'role'     => $user->role()->id(),
+			]);
+
+			$user->writePassword($user->password());
+
+			// always create users in the default language
+			if ($user->kirby()->multilang() === true) {
+				$languageCode = $user->kirby()->defaultLanguage()->code();
+			} else {
+				$languageCode = null;
+			}
+
+			// add the user to users collection
+			$user->kirby()->users()->add($user);
+
+			// write the user data
+			return $user->save($user->content()->toArray(), $languageCode);
+		});
+	}
+
+	/**
+	 * Creates a new avatar for the user
+	 */
+	public function createAvatar(string $source, string $extension, bool $move = false): static
+	{
+		return $this->commit('createAvatar', ['user' => $this, 'source' => $source, 'extension' => $extension], function ($user, $source, $extension) use ($move) {
+			$user->createFile(
+				[
+					'filename' => 'profile.' . $extension,
+					'template' => 'avatar',
+					'source'   => $source
+				],
+				$move
+			);
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Returns a random user id
+	 */
+	public function createId(): string
+	{
+		$length = 8;
+
+		do {
+			try {
+				$id = Str::random($length);
+				if (UserRules::validId($this, $id) === true) {
+					return $id;
+				}
+
+				// we can't really test for a random match
+				// @codeCoverageIgnoreStart
+			} catch (Throwable) {
+				$length++;
+			}
+		} while (true);
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Deletes the user
+	 *
+	 * @throws \Kirby\Exception\LogicException
+	 */
+	public function delete(): bool
+	{
+		return $this->commit('delete', ['user' => $this], function ($user) {
+			if ($user->exists() === false) {
+				return true;
+			}
+
+			// delete all public assets for this user
+			Dir::remove($user->mediaRoot());
+
+			// delete the user directory
+			if (Dir::remove($user->root()) !== true) {
+				throw new LogicException('The user directory for "' . $user->email() . '" could not be deleted');
+			}
+
+			// remove the user from users collection
+			$user->kirby()->users()->remove($user);
+
+			return true;
+		});
+	}
+
+	/**
+	 * Deletes the existing avatar if it exists
+	 */
+	public function deleteAvatar(): bool
+	{
+		return $this->commit('deleteAvatar', ['user' => $this], function ($user) {
+			return $user->avatar()->delete();
+		});
+	}
+
+	/**
+	 * Read the account information from disk
+	 */
+	protected function readCredentials(): array
+	{
+		$path = $this->root() . '/index.php';
+
+		if (is_file($path) === true) {
+			$credentials = F::load($path, allowOutput: false);
+
+			return is_array($credentials) === false ? [] : $credentials;
+		}
+
+		return [];
+	}
+
+	/**
+	 * Reads the user password from disk
+	 */
+	protected function readPassword(): string|false
+	{
+		return $this->secret('password') ?? false;
+	}
+
+	/**
+	 * Reads the secrets from the user secrets file on disk
+	 * @since 4.0.0
+	 */
+	protected function readSecrets(): array
+	{
+		$file    = $this->secretsFile();
+		$secrets = [];
+
+		if (is_file($file) === true) {
+			$lines = explode("\n", file_get_contents($file));
+
+			if (isset($lines[1]) === true) {
+				$secrets = Json::decode($lines[1]);
+			}
+
+			$secrets['password'] = $lines[0];
+		}
+
+		// an empty password hash means that no password was set
+		if (($secrets['password'] ?? null) === '') {
+			unset($secrets['password']);
+		}
+
+		return $secrets;
+	}
+
+	/**
+	 * Replaces the existing avatar for the user
+	 */
+	public function replaceAvatar(string $source, string $extension, bool $move = false): static
+	{
+		return $this->commit('replaceAvatar', ['user' => $this, 'source' => $source, 'extension' => $extension], function ($user, $source, $extension) use ($move) {
+			$oldAvatar = $user->avatar();
+
+			// if the file type stayed the same, we can fall back to the
+			// replace method, which is the cleanest solution here.
+			if ($oldAvatar->extension() === $extension) {
+				$oldAvatar->replace($source, $move);
+
+				return $user;
+			}
+
+			// check if the user can delete the old avatar,
+			// but don't delete it yet. If creating the new one fails
+			// we can still keep the old one around
+			FileRules::delete($oldAvatar);
+
+			// try to create the new avatar
+			$user->createFile(
+				[
+					'filename' => 'profile.' . $extension,
+					'template' => 'avatar',
+					'source'   => $source,
+				],
+				$move
+			);
+
+			// if the new avatar was successfully created,
+			// delete the old one to make sure that we don't have two.
+			$oldAvatar->delete();
+
+			return $user;
+		});
+	}
+
+	/**
+	 * Updates the user data
+	 */
+	public function update(
+		array|null $input = null,
+		string|null $languageCode = null,
+		bool $validate = false
+	): static {
+		$user = parent::update($input, $languageCode, $validate);
+
+		// set auth user data only if the current user is this user
+		if ($user->isLoggedIn() === true) {
+			$this->kirby()->auth()->setUser($user);
+		}
+
+		// update the users collection
+		$user->kirby()->users()->set($user->id(), $user);
+
+		return $user;
+	}
+
+	/**
+	 * This always merges the existing credentials
+	 * with the given input.
+	 */
+	protected function updateCredentials(array $credentials): bool
+	{
+		// normalize the email address
+		if (isset($credentials['email']) === true) {
+			$credentials['email'] = Str::lower(trim($credentials['email']));
+		}
+
+		return $this->writeCredentials(array_merge($this->credentials(), $credentials));
+	}
+
+	/**
+	 * Writes the account information to disk
+	 */
+	protected function writeCredentials(array $credentials): bool
+	{
+		return Data::write($this->root() . '/index.php', $credentials);
+	}
+
+	/**
+	 * Writes the password to disk
+	 */
+	protected function writePassword(
+		#[SensitiveParameter]
+		string|null $password = null
+	): bool {
+		return $this->writeSecret('password', $password);
+	}
+
+	/**
+	 * Writes a specific secret to the user secrets file on disk;
+	 * `password` is the first line, the rest is stored as JSON
+	 * @since 4.0.0
+	 */
+	protected function writeSecret(
+		string $key,
+		#[SensitiveParameter]
+		mixed $secret
+	): bool {
+		$secrets = $this->readSecrets();
+
+		if ($secret === null) {
+			unset($secrets[$key]);
+		} else {
+			$secrets[$key] = $secret;
+		}
+
+		// first line is always the password
+		$lines = $secrets['password'] ?? '';
+
+		// everything else is for the second line
+		$secondLine = Json::encode(
+			A::without($secrets, 'password')
+		);
+
+		if ($secondLine !== '[]') {
+			$lines .= "\n" . $secondLine;
+		}
+
+		return F::write($this->secretsFile(), $lines);
+	}
+}
