@@ -74,7 +74,7 @@ button.translation-link {
   position: sticky;
   top: var(--header-sticky-offset);
   z-index: 1;
-  width: 100%;
+  width: auto;
   display: flex;
   text-transform: uppercase;
   font-family: var(--font-mono);
@@ -83,6 +83,8 @@ button.translation-link {
   background: var(--color-background);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 2px;
+  margin: 0 -2px 2px -2px;
+  padding: 0 2px;
 }
 .k-translations-index-header .k-translations-index-header-item {
   height: var(--table-row-height);

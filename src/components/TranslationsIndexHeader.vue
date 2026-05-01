@@ -1,7 +1,5 @@
 <template>
-  <header
-    class="k-translations-index-header flex grow z-2 -mx-0.5 px-0.5 w-auto"
-  >
+  <header class="k-translations-index-header">
     <span
       class="k-translations-index-header-item k-translations-index-header-title"
       >{{ $t("pages") }}</span
