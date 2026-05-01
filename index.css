@@ -3,7 +3,7 @@
 }
 .translations-status {
   line-height: 1.25rem;
-  background: #fff;
+  background: var(--item-color-back);
   box-shadow: var(--shadow);
   border-radius: var(--rounded);
 }
@@ -17,7 +17,7 @@
 }
 .translation-state:hover,
 .translation-link:hover {
-  background: #fdfdfd;
+  background: var(--table-color-hover);
   text-decoration: underline;
 }
 .translation-status:active,
@@ -31,7 +31,6 @@
 button.translation-state {
   height: var(--table-row-height);
   width: var(--table-row-height);
-  border-right: solid 1px #ccc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,7 +51,7 @@ button.translation-link {
   color: #d08902;
 }
 .k-icon.translated-false {
-  color: #ddd;
+  color: light-dark(#ddd, var(--color-gray-600));
 }
 
 .translation-breadcrumbs {
@@ -80,8 +79,8 @@ button.translation-link {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--table-color-th-text);
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--table-color-th-back);
+  border-bottom: 1px solid var(--table-color-border);
   margin-bottom: 2px;
   margin: 0 -2px 2px -2px;
   padding: 0 2px;
@@ -101,14 +100,14 @@ button.translation-link {
 }
 
 .k-translations-index-header .k-item-figure {
-  border-right: solid 1px #e6e6e6;
+  border-inline-end: 1px solid var(--table-color-border);
 }
 
 .k-translations-index-loading-container {
   text-align: center;
   font-size: 14px;
   padding: 30px 0;
-  color: #666;
+  color: var(--color-text-dimmed);
 }
 .k-translations-index-spinner {
   display: flex;
