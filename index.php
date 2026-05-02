@@ -11,6 +11,11 @@ Kirby::plugin('samrm/translations', [
             'pattern' => '(:all)',
             'language' => '*',
             'action' => function ($language, $slug) {
+                // Skip non-page URLs (feeds, sitemaps, asset-like paths) so that
+                // dedicated routes can handle them.
+                if (str_contains($slug, '.')) {
+                    return $this->next();
+                }
                 $page = site()->visit($slug, $language->code());
                 if (option('samrm.translations.routing') && $page->isUntranslated() && !kirby()->user()) {
                     return page('error')->render(['message' => 'This page has not been translated yet.']);
@@ -139,9 +144,16 @@ Kirby::plugin('samrm/translations', [
                     $request = $this->requestBody();
                     try {
                         $page = $this->kirby()->page($request['pageId']);
-                        $page->update([
-                            'translated' => $request['status']  ?  $request['status'] : 'false'
-                        ], $request['languageCode']);
+                        $languageCode = $request['languageCode'];
+                        $newStatus = $request['status'] ? $request['status'] : 'false';
+                        $previousStatus = $page->getTranslatedStatus($languageCode);
+
+                        $update = ['translated' => $newStatus];
+                        if ($newStatus === 'true' && $previousStatus !== 'true') {
+                            $update['updatedAt'] = date('c');
+                        }
+
+                        $page->update($update, $languageCode);
                         return [
                             'status' => 'success',
                             'value' => $request['status']
