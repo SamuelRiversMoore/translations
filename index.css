@@ -134,3 +134,10 @@ button.translation-link {
 .k-translations-buttons {
   flex-shrink: 0;
 }
+
+.k-translations-index-header-languages {
+  display: flex;
+}
+.k-translations-item-options {
+  display: flex;
+}

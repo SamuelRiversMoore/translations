@@ -4,7 +4,7 @@
       class="k-translations-index-header-item k-translations-index-header-title"
       >{{ $t("pages") }}</span
     >
-    <span class="flex">
+    <span class="k-translations-index-header-languages">
       <template v-for="language in languages">
         <span class="translation-index-state k-translations-index-header-item">
           {{ language.code }}

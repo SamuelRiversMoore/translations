@@ -17,7 +17,7 @@
         </k-link>
       </h3>
     </div>
-    <div class="k-item-options flex">
+    <div class="k-item-options k-translations-item-options">
       <template v-for="language in $panel.languages">
         <span v-if="item.translations" class="translation-index-state">
           <k-icon
