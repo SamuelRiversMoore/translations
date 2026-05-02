@@ -32,7 +32,6 @@ Kirby::plugin('samrm/translations', [
                 $translations[] = array(
                     'title' => $child->title()->value(),
                     'depth' => $child->depth() - 1,
-                    'image' => $child->panel()->image(),
                     'panelUrl' => $child->panel()->url(true),
                     'breadcrumbs' => $child->getBreadcrumbsAsString(),
                     'translations' => $child->getTranslationsStates()

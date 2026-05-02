@@ -1,6 +1,5 @@
 <template>
-  <div data-layout="list" data-has-image="true" class="k-item k-list-item">
-    <k-item-image :image="item.image" />
+  <div data-layout="list" class="k-item k-list-item">
     <div class="k-item-content">
       <h3 title="Algeria" class="k-item-title">
         <k-link
